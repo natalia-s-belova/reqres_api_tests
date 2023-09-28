@@ -1,9 +1,23 @@
 import jsonschema
+import pytest
 from reqres_api_tests.utils import helper
 import os
 import datetime
+import allure
+from allure_commons.types import Severity
+
+pytestmark = [
+    allure.label('layer', 'API test'),
+    allure.label('owner', 'nsbelova'),
+    allure.epic('Reqres API'),
+    allure.tag('REST')
+]
 
 
+@allure.title('Verify response schema for Users List')
+@allure.feature('Users List')
+@allure.story('Get Users List')
+@allure.severity(Severity.CRITICAL)
 def test_users_list_response_schema():
     schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_users_list.json'))
 
@@ -13,6 +27,10 @@ def test_users_list_response_schema():
     jsonschema.validators.validate(instance=response.json(), schema=schema)
 
 
+@allure.title('Verify emails in the response for Users List when all users are requested')
+@allure.feature('Users List')
+@allure.story('Get Users List')
+@allure.severity(Severity.CRITICAL)
 def test_users_list_emails_are_correct_all_users_requested():
     per_page = 12
     registered_emails = ['george.bluth@reqres.in',
@@ -38,6 +56,10 @@ def test_users_list_emails_are_correct_all_users_requested():
     assert registered_emails == emails_in_json
 
 
+@allure.title('Verify names in the response for Users List when per_page is specified')
+@allure.feature('Users List')
+@allure.story('Get Users List')
+@allure.severity(Severity.CRITICAL)
 def test_users_list_names_are_correct_and_pagination_applied():
     per_page = 4
     page_number = 3
@@ -56,8 +78,13 @@ def test_users_list_names_are_correct_and_pagination_applied():
     assert users_shown == users_in_response
 
 
-def test_users_list_when_per_page_amount_more_than_existing_users():
-    per_page = 20
+@allure.title('Verify response content for Users List when per_page is more than existing users')
+@allure.feature('Users List')
+@allure.story('Get Users List')
+@allure.severity(Severity.NORMAL)
+@pytest.mark.parametrize('per_page_amount', [20, 100])
+def test_users_list_when_per_page_amount_more_than_existing_users(per_page_amount):
+    per_page = per_page_amount
 
     response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
 
@@ -66,6 +93,10 @@ def test_users_list_when_per_page_amount_more_than_existing_users():
     assert len(response.json()['data']) == 12
 
 
+@allure.title('Verify response schema for Single User')
+@allure.feature('Single User')
+@allure.story('Get Single User Info')
+@allure.severity(Severity.CRITICAL)
 def test_user_single_response_schema():
     id = 7
     schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_single_user.json'))
@@ -76,6 +107,10 @@ def test_user_single_response_schema():
     jsonschema.validators.validate(instance=response.json(), schema=schema)
 
 
+@allure.title('Verify response content for Single User')
+@allure.feature('Single User')
+@allure.story('Get Single User Info')
+@allure.severity(Severity.CRITICAL)
 def test_single_existing_user_data():
     id = 8
 
@@ -89,8 +124,13 @@ def test_single_existing_user_data():
     assert response.json()['data']['avatar'] == 'https://reqres.in/img/faces/8-image.jpg'
 
 
-def test_single_user_avatar():
-    id = 7
+@allure.title('Verify avatar for Single User')
+@allure.feature('Single User')
+@allure.story('Get Single User Info')
+@allure.severity(Severity.CRITICAL)
+@pytest.mark.parametrize('user_id', [7, 8, 9])
+def test_single_user_avatar(user_id):
+    id = user_id
 
     response = helper.api_request("get", url=f"/api/users/{id}")
 
@@ -103,6 +143,10 @@ def test_single_user_avatar():
     os.remove(actual)
 
 
+@allure.title('Verify error when non-existing user requested')
+@allure.feature('Single User')
+@allure.story('Get Single User Info')
+@allure.severity(Severity.CRITICAL)
 def test_single_non_existing_user():
     id = 23
 
@@ -112,6 +156,10 @@ def test_single_non_existing_user():
     assert response.json() == {}
 
 
+@allure.title('Verify response schema for Create User')
+@allure.feature('Single User')
+@allure.story('Post Single User')
+@allure.severity(Severity.CRITICAL)
 def test_create_user_response_schema():
     schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_user.json'))
 
@@ -125,6 +173,10 @@ def test_create_user_response_schema():
     jsonschema.validators.validate(instance=response.json(), schema=schema)
 
 
+@allure.title('Verify response content for Create User')
+@allure.feature('Single User')
+@allure.story('Post Single User')
+@allure.severity(Severity.CRITICAL)
 def test_create_new_user():
     response = helper.api_request(
         "post",
@@ -138,6 +190,10 @@ def test_create_new_user():
     assert response.json()['createdAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
 
 
+@allure.title('Verify error for not well-formed json for Create User')
+@allure.feature('Single User')
+@allure.story('Post Single User')
+@allure.severity(Severity.NORMAL)
 def test_create_new_user_non_well_formed_json():
     response = helper.api_request(
         "post",
@@ -150,6 +206,10 @@ def test_create_new_user_non_well_formed_json():
     assert 'Bad Request' in response.text
 
 
+@allure.title('Verify Deletion of a User')
+@allure.feature('Single User')
+@allure.story('Delete Single User')
+@allure.severity(Severity.CRITICAL)
 def test_delete_user():
     id = 2
 
@@ -158,6 +218,10 @@ def test_delete_user():
     assert response_del.status_code == 204
 
 
+@allure.title('Verify response schema for Patching of a User')
+@allure.feature('Single User')
+@allure.story('Patch Single User')
+@allure.severity(Severity.CRITICAL)
 def test_patch_user_response_schema():
     id = 5
     schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'patch_user.json'))
@@ -172,6 +236,10 @@ def test_patch_user_response_schema():
     jsonschema.validators.validate(instance=response.json(), schema=schema)
 
 
+@allure.title('Verify Patching of a User')
+@allure.feature('Single User')
+@allure.story('Patch Single User')
+@allure.severity(Severity.CRITICAL)
 def test_patch_user_data():
     id = 5
 
@@ -187,6 +255,10 @@ def test_patch_user_data():
     assert response.json()['updatedAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
 
 
+@allure.title('Verify error for not well-formed json for Patch User')
+@allure.feature('Single User')
+@allure.story('Patch Single User')
+@allure.severity(Severity.NORMAL)
 def test_patch_user_data_non_well_formed_json():
     id = 2
 

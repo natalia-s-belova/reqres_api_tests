@@ -1,18 +1,19 @@
 import jsonschema
 from reqres_api_tests.utils import helper
 import os
+import datetime
 
 
 def test_users_list_response_schema():
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_users_list_schema.json'))
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_users_list.json'))
+
     response = helper.api_request("get", url="/api/users")
 
     assert response.status_code == 200
-
     jsonschema.validators.validate(instance=response.json(), schema=schema)
 
 
-def test_users_emails_are_correct_all_users_requested():
+def test_users_list_emails_are_correct_all_users_requested():
     per_page = 12
     registered_emails = ['george.bluth@reqres.in',
                          'janet.weaver@reqres.in',
@@ -28,6 +29,7 @@ def test_users_emails_are_correct_all_users_requested():
                          'rachel.howell@reqres.in']
 
     response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
+
     emails_in_json = [user['email'] for user in response.json()['data']]
 
     assert response.status_code == 200
@@ -36,7 +38,7 @@ def test_users_emails_are_correct_all_users_requested():
     assert registered_emails == emails_in_json
 
 
-def test_users_names_when_pagination_applied():
+def test_users_list_names_are_correct_and_pagination_applied():
     per_page = 4
     page_number = 3
     users_shown = ['Tobias Funke',
@@ -64,6 +66,16 @@ def test_users_list_when_per_page_amount_more_than_existing_users():
     assert len(response.json()['data']) == 12
 
 
+def test_user_single_response_schema():
+    id = 7
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_single_user.json'))
+
+    response = helper.api_request("get", url=f"/api/users/{id}")
+
+    assert response.status_code == 200
+    jsonschema.validators.validate(instance=response.json(), schema=schema)
+
+
 def test_single_existing_user_data():
     id = 8
 
@@ -79,6 +91,7 @@ def test_single_existing_user_data():
 
 def test_single_user_avatar():
     id = 7
+
     response = helper.api_request("get", url=f"/api/users/{id}")
 
     reference = helper.path_dir('resources', 'images', f'{id}.jpeg')
@@ -99,7 +112,9 @@ def test_single_non_existing_user():
     assert response.json() == {}
 
 
-def test_add_then_remove_user():
+def test_create_user_response_schema():
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_user.json'))
+
     response = helper.api_request(
         "post",
         url="/api/users",
@@ -107,8 +122,80 @@ def test_add_then_remove_user():
     )
 
     assert response.status_code == 201
+    jsonschema.validators.validate(instance=response.json(), schema=schema)
 
-    id = response.json()["id"]
+
+def test_create_new_user():
+    response = helper.api_request(
+        "post",
+        url="/api/users",
+        data={"name": "Nikola Jokic", "job": "MVP"}
+    )
+
+    assert response.status_code == 201
+    assert response.json()['name'] == 'Nikola Jokic'
+    assert response.json()['job'] == 'MVP'
+    assert response.json()['createdAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+
+
+def test_create_new_user_non_well_formed_json():
+    response = helper.api_request(
+        "post",
+        url="/api/users",
+        headers={'Content-Type': 'application/json'},
+        data='{\"name\" \"Michael Jordan\", \"job\": \"Nike\"}'
+    )
+
+    assert response.status_code == 400
+    assert 'Bad Request' in response.text
+
+
+def test_delete_user():
+    id = 2
 
     response_del = helper.api_request("delete", url=f"/api/users/{id}")
+
     assert response_del.status_code == 204
+
+
+def test_patch_user_response_schema():
+    id = 5
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'patch_user.json'))
+
+    response = helper.api_request(
+        "patch",
+        url=f"/api/users/{id}",
+        data={"name": "morpheus", "job": "unemployed"}
+    )
+
+    assert response.status_code == 200
+    jsonschema.validators.validate(instance=response.json(), schema=schema)
+
+
+def test_patch_user_data():
+    id = 5
+
+    response = helper.api_request(
+        "patch",
+        url=f"/api/users/{id}",
+        data={"name": "morpheus", "job": "unemployed"}
+    )
+
+    assert response.status_code == 200
+    assert response.json()['name'] == 'morpheus'
+    assert response.json()['job'] == 'unemployed'
+    assert response.json()['updatedAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+
+
+def test_patch_user_data_non_well_formed_json():
+    id = 2
+
+    response = helper.api_request(
+        "patch",
+        url=f"/api/users/{id}",
+        headers={'Content-Type': 'application/json'},
+        data="{\"name\": \"morpheus, \"job\": \"leader\"}"
+    )
+
+    assert response.status_code == 400
+    assert 'Bad Request' in response.text

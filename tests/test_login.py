@@ -8,7 +8,7 @@ def test_login_response_schema():
         url="/api/login",
         data={"email": "eve.holt@reqres.in", "password": "cityslicka"}
     )
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_successful_login_schema.json'))
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_login.json'))
 
     assert response.status_code == 200
     jsonschema.validators.validate(instance=response.json(), schema=schema)
@@ -47,7 +47,7 @@ def test_failed_login_non_specified_password():
     assert response.json()["error"] == "Missing password"
 
 
-def test_invalid_body():
+def test_failed_login_non_well_formed_json():
     response = helper.api_request(
         "post",
         url="/api/login",
@@ -56,4 +56,4 @@ def test_invalid_body():
     )
 
     assert response.status_code == 400
-    assert 'Bad Request' in str(response.content)
+    assert 'Bad Request' in response.text

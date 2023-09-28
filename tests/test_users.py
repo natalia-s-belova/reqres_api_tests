@@ -1,12 +1,11 @@
 import jsonschema
-from utils import helper
-
-service = 'regres'
+from reqres_api_tests.utils import helper
+import os
 
 
 def test_users_list_response_schema():
-    schema = helper.response_schema(helper.path_dir('resources', 'get_users_list_schema.json'))
-    response = helper.api_request(service, "get", url="/api/users")
+    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_users_list_schema.json'))
+    response = helper.api_request("get", url="/api/users")
 
     assert response.status_code == 200
 
@@ -28,7 +27,7 @@ def test_users_emails_are_correct_all_users_requested():
                          'george.edwards@reqres.in',
                          'rachel.howell@reqres.in']
 
-    response = helper.api_request(service, "get", url="/api/users", params={"per_page": per_page})
+    response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
     emails_in_json = [user['email'] for user in response.json()['data']]
 
     assert response.status_code == 200
@@ -45,7 +44,7 @@ def test_users_names_when_pagination_applied():
                    'George Edwards',
                    'Rachel Howell']
 
-    response = helper.api_request(service, "get", url="/api/users", params={"per_page": per_page, "page": page_number})
+    response = helper.api_request("get", url="/api/users", params={"per_page": per_page, "page": page_number})
 
     users_in_response = [f"{user['first_name']} {user['last_name']}" for user in response.json()['data']]
 
@@ -58,7 +57,7 @@ def test_users_names_when_pagination_applied():
 def test_users_list_when_per_page_amount_more_than_existing_users():
     per_page = 20
 
-    response = helper.api_request(service, "get", url="/api/users", params={"per_page": per_page})
+    response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
 
     assert response.status_code == 200
     assert response.json()['per_page'] == per_page
@@ -68,7 +67,7 @@ def test_users_list_when_per_page_amount_more_than_existing_users():
 def test_single_existing_user_data():
     id = 8
 
-    response = helper.api_request(service, "get", url=f"/api/users/{id}")
+    response = helper.api_request("get", url=f"/api/users/{id}")
 
     assert response.status_code == 200
     assert response.json()['data']['id'] == id
@@ -78,10 +77,23 @@ def test_single_existing_user_data():
     assert response.json()['data']['avatar'] == 'https://reqres.in/img/faces/8-image.jpg'
 
 
+def test_single_user_avatar():
+    id = 7
+    response = helper.api_request("get", url=f"/api/users/{id}")
+
+    reference = helper.path_dir('resources', 'images', f'{id}.jpeg')
+    actual = helper.path_dir('resources', 'images', 'downloaded.jpeg')
+    helper.download_file_by_url_as(response.json()['data']['avatar'], actual)
+
+    assert helper.are_images_equal(actual, reference)
+
+    os.remove(actual)
+
+
 def test_single_non_existing_user():
     id = 23
 
-    response = helper.api_request(service, "get", url=f"/api/users/{id}")
+    response = helper.api_request("get", url=f"/api/users/{id}")
 
     assert response.status_code == 404
     assert response.json() == {}
@@ -89,7 +101,6 @@ def test_single_non_existing_user():
 
 def test_add_then_remove_user():
     response = helper.api_request(
-        service,
         "post",
         url="/api/users",
         data={"name": "morpheus", "job": "leader"}
@@ -99,5 +110,5 @@ def test_add_then_remove_user():
 
     id = response.json()["id"]
 
-    response_del = helper.api_request(service, "delete", url=f"/api/users/{id}")
+    response_del = helper.api_request("delete", url=f"/api/users/{id}")
     assert response_del.status_code == 204

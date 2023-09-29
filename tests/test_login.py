@@ -1,8 +1,8 @@
-import jsonschema
 from reqres_api_tests.utils import helper
-
+from reqres_api_tests.models import reqres
 import allure
 from allure_commons.types import Severity
+
 
 pytestmark = [
     allure.label('layer', 'API test'),
@@ -22,10 +22,9 @@ def test_login_response_schema():
         url="/api/login",
         data={"email": "eve.holt@reqres.in", "password": "cityslicka"}
     )
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_login.json'))
 
-    assert response.status_code == 200
-    jsonschema.validators.validate(instance=response.json(), schema=schema)
+    reqres.verify_code(response, 200)
+    reqres.verify_schema(response, 'post_login.json')
 
 
 @allure.title('Verify response content for successful Login')
@@ -39,8 +38,8 @@ def test_successful_login():
         data={"email": "eve.holt@reqres.in", "password": "cityslicka"}
     )
 
-    assert response.status_code == 200
-    assert response.json()["token"] == "QpwL5tke4Pnpja7X4"
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json(response, 'token', 'QpwL5tke4Pnpja7X4')
 
 
 @allure.title('Verify error for failed Login - user does not exist')
@@ -54,8 +53,8 @@ def test_failed_login_non_existing_user():
         data={"email": "eve.holtNEW@reqres.in", "password": "cityslicka"}
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "user not found"
+    reqres.verify_code(response, 400)
+    reqres.verify_response_json(response, 'error', 'user not found')
 
 
 @allure.title('Verify error for failed Login - password is not provided')
@@ -69,8 +68,8 @@ def test_failed_login_non_specified_password():
         data={"email": "eve.holt@reqres.in", "password": ""}
     )
 
-    assert response.status_code == 400
-    assert response.json()["error"] == "Missing password"
+    reqres.verify_code(response, 400)
+    reqres.verify_response_json(response, 'error', 'Missing password')
 
 
 @allure.title('Verify error for not well-formed json for Login')
@@ -85,5 +84,5 @@ def test_failed_login_non_well_formed_json():
         data="{\"email\": \"eve.holt@reqres.in\" \"password: \"pistol\"}"
     )
 
-    assert response.status_code == 400
-    assert 'Bad Request' in response.text
+    reqres.verify_code(response, 400)
+    reqres.verify_response_text(response, 'Bad Request')

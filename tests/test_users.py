@@ -1,8 +1,6 @@
-import jsonschema
 import pytest
 from reqres_api_tests.utils import helper
-import os
-import datetime
+from reqres_api_tests.models import reqres
 import allure
 from allure_commons.types import Severity
 
@@ -19,12 +17,10 @@ pytestmark = [
 @allure.story('Get Users List')
 @allure.severity(Severity.CRITICAL)
 def test_users_list_response_schema():
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_users_list.json'))
-
     response = helper.api_request("get", url="/api/users")
 
-    assert response.status_code == 200
-    jsonschema.validators.validate(instance=response.json(), schema=schema)
+    reqres.verify_code(response, 200)
+    reqres.verify_schema(response, 'get_users_list.json')
 
 
 @allure.title('Verify emails in the response for Users List when all users are requested')
@@ -48,34 +44,26 @@ def test_users_list_emails_are_correct_all_users_requested():
 
     response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
 
-    emails_in_json = [user['email'] for user in response.json()['data']]
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json(response, 'total', per_page)
 
-    assert response.status_code == 200
-    assert response.json()['total'] == per_page
-    assert len(emails_in_json) == per_page
-    assert registered_emails == emails_in_json
+    reqres.verify_correct_values_for_parameter(response, 'email', registered_emails)
 
 
-@allure.title('Verify names in the response for Users List when per_page is specified')
+@allure.title('Verify last names in the response for Users List when per_page is specified and pagination applied')
 @allure.feature('Users List')
 @allure.story('Get Users List')
 @allure.severity(Severity.CRITICAL)
-def test_users_list_names_are_correct_and_pagination_applied():
+def test_users_last_names_are_correct_and_pagination_applied():
     per_page = 4
     page_number = 3
-    users_shown = ['Tobias Funke',
-                   'Byron Fields',
-                   'George Edwards',
-                   'Rachel Howell']
+    lastnames_shown = ['Funke', 'Fields', 'Edwards', 'Howell']
 
     response = helper.api_request("get", url="/api/users", params={"per_page": per_page, "page": page_number})
 
-    users_in_response = [f"{user['first_name']} {user['last_name']}" for user in response.json()['data']]
-
-    assert response.status_code == 200
-    assert response.json()['total'] == 12
-    assert len(users_in_response) == per_page
-    assert users_shown == users_in_response
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json(response, 'total', 12)
+    reqres.verify_correct_values_for_parameter(response, 'last_name', lastnames_shown)
 
 
 @allure.title('Verify response content for Users List when per_page is more than existing users')
@@ -88,9 +76,9 @@ def test_users_list_when_per_page_amount_more_than_existing_users(per_page_amoun
 
     response = helper.api_request("get", url="/api/users", params={"per_page": per_page})
 
-    assert response.status_code == 200
-    assert response.json()['per_page'] == per_page
-    assert len(response.json()['data']) == 12
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json(response, 'per_page', per_page)
+    reqres.verify_amount_users_shown(response, 12)
 
 
 @allure.title('Verify response schema for Single User')
@@ -99,12 +87,11 @@ def test_users_list_when_per_page_amount_more_than_existing_users(per_page_amoun
 @allure.severity(Severity.CRITICAL)
 def test_user_single_response_schema():
     id = 7
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'get_single_user.json'))
 
     response = helper.api_request("get", url=f"/api/users/{id}")
 
-    assert response.status_code == 200
-    jsonschema.validators.validate(instance=response.json(), schema=schema)
+    reqres.verify_code(response, 200)
+    reqres.verify_schema(response, 'get_single_user.json')
 
 
 @allure.title('Verify response content for Single User')
@@ -116,12 +103,12 @@ def test_single_existing_user_data():
 
     response = helper.api_request("get", url=f"/api/users/{id}")
 
-    assert response.status_code == 200
-    assert response.json()['data']['id'] == id
-    assert response.json()['data']['email'] == 'lindsay.ferguson@reqres.in'
-    assert response.json()['data']['first_name'] == 'Lindsay'
-    assert response.json()['data']['last_name'] == 'Ferguson'
-    assert response.json()['data']['avatar'] == 'https://reqres.in/img/faces/8-image.jpg'
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json_data(response, 'id', id)
+    reqres.verify_response_json_data(response, 'email', 'lindsay.ferguson@reqres.in')
+    reqres.verify_response_json_data(response, 'first_name', 'Lindsay')
+    reqres.verify_response_json_data(response, 'last_name', 'Ferguson')
+    reqres.verify_response_json_data(response, 'avatar', 'https://reqres.in/img/faces/8-image.jpg')
 
 
 @allure.title('Verify avatar for Single User')
@@ -138,9 +125,10 @@ def test_single_user_avatar(user_id):
     actual = helper.path_dir('resources', 'images', 'downloaded.jpeg')
     helper.download_file_by_url_as(response.json()['data']['avatar'], actual)
 
-    assert helper.are_images_equal(actual, reference)
+    reqres.verify_code(response, 200)
+    reqres.verify_avatar_as_referenced(actual, reference)
 
-    os.remove(actual)
+    helper.remove_file(actual)
 
 
 @allure.title('Verify error when non-existing user requested')
@@ -152,8 +140,8 @@ def test_single_non_existing_user():
 
     response = helper.api_request("get", url=f"/api/users/{id}")
 
-    assert response.status_code == 404
-    assert response.json() == {}
+    reqres.verify_code(response, 404)
+    reqres.verify_empty_response(response)
 
 
 @allure.title('Verify response schema for Create User')
@@ -161,16 +149,14 @@ def test_single_non_existing_user():
 @allure.story('Post Single User')
 @allure.severity(Severity.CRITICAL)
 def test_create_user_response_schema():
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'post_user.json'))
-
     response = helper.api_request(
         "post",
         url="/api/users",
         data={"name": "morpheus", "job": "leader"}
     )
 
-    assert response.status_code == 201
-    jsonschema.validators.validate(instance=response.json(), schema=schema)
+    reqres.verify_code(response, 201)
+    reqres.verify_schema(response, 'post_user.json')
 
 
 @allure.title('Verify response content for Create User')
@@ -184,10 +170,10 @@ def test_create_new_user():
         data={"name": "Nikola Jokic", "job": "MVP"}
     )
 
-    assert response.status_code == 201
-    assert response.json()['name'] == 'Nikola Jokic'
-    assert response.json()['job'] == 'MVP'
-    assert response.json()['createdAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+    reqres.verify_code(response, 201)
+    reqres.verify_response_json(response, 'name', 'Nikola Jokic')
+    reqres.verify_response_json(response, 'job', 'MVP')
+    reqres.verify_response_date_parameter(response, 'createdAt')
 
 
 @allure.title('Verify error for not well-formed json for Create User')
@@ -202,8 +188,8 @@ def test_create_new_user_non_well_formed_json():
         data='{\"name\" \"Michael Jordan\", \"job\": \"Nike\"}'
     )
 
-    assert response.status_code == 400
-    assert 'Bad Request' in response.text
+    reqres.verify_code(response, 400)
+    reqres.verify_response_text(response, 'Bad Request')
 
 
 @allure.title('Verify Deletion of a User')
@@ -213,9 +199,9 @@ def test_create_new_user_non_well_formed_json():
 def test_delete_user():
     id = 2
 
-    response_del = helper.api_request("delete", url=f"/api/users/{id}")
+    response = helper.api_request("delete", url=f"/api/users/{id}")
 
-    assert response_del.status_code == 204
+    reqres.verify_code(response, 204)
 
 
 @allure.title('Verify response schema for Patching of a User')
@@ -224,7 +210,6 @@ def test_delete_user():
 @allure.severity(Severity.CRITICAL)
 def test_patch_user_response_schema():
     id = 5
-    schema = helper.response_schema(helper.path_dir('resources', 'schemas', 'patch_user.json'))
 
     response = helper.api_request(
         "patch",
@@ -232,8 +217,8 @@ def test_patch_user_response_schema():
         data={"name": "morpheus", "job": "unemployed"}
     )
 
-    assert response.status_code == 200
-    jsonschema.validators.validate(instance=response.json(), schema=schema)
+    reqres.verify_code(response, 200)
+    reqres.verify_schema(response, 'patch_user.json')
 
 
 @allure.title('Verify Patching of a User')
@@ -249,10 +234,10 @@ def test_patch_user_data():
         data={"name": "morpheus", "job": "unemployed"}
     )
 
-    assert response.status_code == 200
-    assert response.json()['name'] == 'morpheus'
-    assert response.json()['job'] == 'unemployed'
-    assert response.json()['updatedAt'][:16] == datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M")
+    reqres.verify_code(response, 200)
+    reqres.verify_response_json(response, 'name', 'morpheus')
+    reqres.verify_response_json(response, 'job', 'unemployed')
+    reqres.verify_response_date_parameter(response, 'updatedAt')
 
 
 @allure.title('Verify error for not well-formed json for Patch User')
@@ -269,5 +254,5 @@ def test_patch_user_data_non_well_formed_json():
         data="{\"name\": \"morpheus, \"job\": \"leader\"}"
     )
 
-    assert response.status_code == 400
-    assert 'Bad Request' in response.text
+    reqres.verify_code(response, 400)
+    reqres.verify_response_text(response, 'Bad Request')

@@ -6,6 +6,7 @@ import requests
 from requests import sessions
 from curlify import to_curl
 from allure_commons.types import AttachmentType
+from PIL import Image, ImageChops
 
 
 def path_dir(*file_path):
@@ -40,7 +41,6 @@ def api_request(method, url, **kwargs):
 
 
 def are_images_equal(image1, image2):
-    from PIL import Image, ImageChops
     return not ImageChops.difference(Image.open(image1), Image.open(image2)).getbbox()
 
 
@@ -48,3 +48,8 @@ def download_file_by_url_as(url, new_file):
     response = requests.get(url)
     with open(new_file, 'wb') as file:
         file.write(response.content)
+
+
+def remove_file(file_path):
+    with allure.step('Delete temp file'):
+        os.remove(file_path)

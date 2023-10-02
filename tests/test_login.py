@@ -6,7 +6,7 @@ from allure_commons.types import Severity
 
 pytestmark = [
     allure.label('layer', 'API test'),
-    allure.label('owner', 'nsbelova'),
+    allure.label('owner', 'natalia_belova'),
     allure.epic('Reqres API'),
     allure.tag('REST')
 ]

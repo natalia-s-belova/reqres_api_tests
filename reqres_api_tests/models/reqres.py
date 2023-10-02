@@ -49,6 +49,7 @@ def verify_amount_users_shown(response, amount):
     with allure.step(f'Verify amount of users shown is {amount}'):
         assert len(response.json()['data']) == amount
 
+
 def verify_correct_values_for_parameter(response, parameter, list):
     with allure.step(f'Verify presented {parameter}s are correct in response json'):
         assert list == [user[parameter] for user in response.json()['data']]

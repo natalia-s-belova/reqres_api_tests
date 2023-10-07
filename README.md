@@ -30,7 +30,7 @@ Tests verify:
 1. Response code and schema (if applicable)
 2. Response content
 3. Request validity (data correctness in body/parameters, well-formed json in body)
-4. User's avatar comparing with a reference
+4. User's avatar comparison with a reference
 
 Example of test case's running (*POST user* request):
 
@@ -73,7 +73,7 @@ As soon as Test Launch is completed, telegram message with the following informa
 
 <img src="readme_images/reqres_telegram.png" height="300"/>&nbsp;
 
-In order for such messages to be sent, [notifications library](https://github.com/qa-guru/allure-notifications) was used, telegram bot was created and added to a specific telegram group.
+For such messages to be sent, [notifications library](https://github.com/qa-guru/allure-notifications) was used, telegram bot was created and added to a specific telegram group.
 
 ### Configuration information
 
@@ -88,8 +88,8 @@ git clone https://github.com/natalia-s-belova/reqres_api_tests
 2. create and activate virtual environment 
 ~~~
 python -m venv .venv
-source .venv/bin/activate     # for MacOS
-sourse .venv\Scripts\activate         # for Windows
+source .venv/bin/activate             # for MacOS
+source .venv\Scripts\activate         # for Windows
 ~~~
 3. install dependencies
 ~~~

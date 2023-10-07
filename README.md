@@ -1,6 +1,8 @@
 ## Training project with API autotests for [reqres.in](https://reqres.in/) service
 
+<p align="center">
 <img src="readme_images/logo_reqres.png" height="70"/>&nbsp;
+</p>
 
 ### Tools and technologies used
 <p>
@@ -37,26 +39,26 @@ Example of test case's running (*POST user* request):
 <img src="readme_images/reqres_test_example.png" height="500"/>&nbsp;
 
 ### Test Launch
-Tests are launching using Jenkins service.
+Tests are launching using **Jenkins service**.
 To run tests, open the [configured job](https://jenkins.autotests.cloud/job/C06-natalya_s_belova_reqres_API/) and click 'Build now'.
 
 <img src="readme_images/reqres_jenkins_job.png"/>&nbsp;
 
-Also, since the integration with Allure Test Ops is implemented, it is possible to run tests with this service. 
-In Allure Test Ops is also an additional ability to configure test scope by choosing specific test cases.
+Also, since the integration with **Allure TestOps** is implemented, it is possible to run tests with this service. 
+In Allure TestOps is also an additional ability to configure test scope by choosing specific test cases.
 
 <img src="readme_images/reqres_testops_3.png"/>&nbsp;
 <img src="readme_images/reqres_testops_4.png"/>&nbsp;
 
 ### Test Report and Test Documentation
 
-Reporting is implemented using Allure services.
+Reporting is implemented using **Allure services**.
 
 [Allure Report](https://jenkins.autotests.cloud/job/C06-natalya_s_belova_reqres_API/allure/) can be opened on Jenkins page (see screenshot above) and contains graphics, detalization of test executions, different kinds of attachments (logs, jsons, response codes, etc.).
 <img src="readme_images/reqres_allure_1.png"/>&nbsp;
 <img src="readme_images/reqres_allure_2.png"/>&nbsp;
 
-Allure Test Ops also contains such information and in addition it has generated Test Documentation that can be imported to Jira.
+**Allure TestOps** also contains such information and in addition it has generated Test Documentation that can be imported to Jira.
 <img src="readme_images/reqres_testops_1.png"/>&nbsp;
 <img src="readme_images/reqres_testops_2.png"/>&nbsp;
 

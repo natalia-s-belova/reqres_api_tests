@@ -75,7 +75,7 @@ As soon as Test Launch is completed, telegram message with the following informa
 
 For such messages to be sent, [notifications library](https://github.com/qa-guru/allure-notifications) was used, telegram bot was created and added to a specific telegram group.
 
-### Configuration information
+### Configuration information for local run
 
 #### Pre-requisites:
 * git, python3 and allure (requires java as well) are installed

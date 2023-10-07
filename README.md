@@ -52,7 +52,7 @@ In Allure Test Ops is also an additional ability to configure test scope by choo
 
 Reporting is implemented using Allure services.
 
-Allure Report can be opened on Jenkins page (see screenshot above) and contains graphics, detalization of test executions, different kinds of attachments (logs, jsons, response codes, etc.).
+[Allure Report](https://jenkins.autotests.cloud/job/C06-natalya_s_belova_reqres_API/allure/) can be opened on Jenkins page (see screenshot above) and contains graphics, detalization of test executions, different kinds of attachments (logs, jsons, response codes, etc.).
 <img src="readme_images/reqres_allure_1.png"/>&nbsp;
 <img src="readme_images/reqres_allure_2.png"/>&nbsp;
 
@@ -77,4 +77,37 @@ In order for such messages to be sent, [notifications library](https://github.co
 
 ### Configuration information
 
-TBD
+#### Pre-requisites:
+* git, python3 and allure (requires java as well) are installed
+
+#### Steps:
+1. close repository on our local machine
+~~~
+git clone https://github.com/natalia-s-belova/reqres_api_tests
+~~~
+2. create and activate virtual environment 
+~~~
+python -m venv .venv
+source .venv/bin/activate     # for MacOS
+sourse .venv\Scripts\activate         # for Windows
+~~~
+3. install dependencies
+~~~
+pip install -r requirements.txt
+~~~
+4. run all tests
+~~~
+pytest .
+~~~
+
+After test run is completed, use command to generate allure report for MacOS:
+~~~
+allure serve
+~~~
+
+for Windows:
+~~~
+allure.bat serve
+~~~
+As a result, you would get Allure report with the same content as demonstrated above.
+You can close it by pressing Ctrl+C.

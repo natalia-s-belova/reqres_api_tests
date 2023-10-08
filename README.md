@@ -83,7 +83,7 @@ For such messages to be sent, [notifications library](https://github.com/qa-guru
 * git, python3 and allure (requires java as well) are installed
 
 #### Steps:
-1. close repository on our local machine
+1. clone repository to your local machine
 ~~~
 git clone https://github.com/natalia-s-belova/reqres_api_tests
 ~~~
